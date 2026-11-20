@@ -1,0 +1,16 @@
+{
+  "drom_url": "https://yaroslavl.drom.ru/auto/do-750000/all/?distance=50&unsold=1",
+  "autoru_url": "https://auto.ru/yaroslavl/cars/used/?price_to=750000&geo_radius=50&sort=cr_date-desc",
+  "max_pages": 70,
+  "exclude_towns": ["Кострома", "Иваново", "Рыбинск", "Москва", "Приволжск", "Меленки", "Коляново"],
+  "selection": {
+    "price_min": 100000,
+    "price_max": 750000,
+    "year_from": 2007,
+    "km_max": 250000,
+    "min_discount": 0.12,
+    "private_only": false,
+    "transmissions": [],
+    "brands": []
+  }
+}

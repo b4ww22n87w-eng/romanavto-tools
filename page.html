@@ -1,0 +1,271 @@
+<title>Подбор авто РоманАвто</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700&family=Unbounded:wght@600&display=swap">
+<style>
+/* Раскладка: липкая панель поиска и фильтров сверху, под ней плотный список объявлений; цена и отличие от рынка справа. */
+:root {
+  --bg: #eef0f2;
+  --surface: #ffffff;
+  --ink: #14181d;
+  --muted: #5c6670;
+  --line: #d5dadf;
+  --accent: #c8102e;
+  --on-accent: #ffffff;
+  --good: #0b7a4b;
+  --good-bg: #dff3e9;
+  --warn: #8a4b00;
+  --warn-bg: #fdeacc;
+  --font-body: "Golos Text", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-display: "Unbounded", "Golos Text", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #111417; --surface: #1a1e23; --ink: #e8ecef; --muted: #96a1ab; --line: #2b3138;
+    --accent: #ff4d5e; --on-accent: #16090b; --good: #3ecf8e; --good-bg: #12352a; --warn: #f0b150; --warn-bg: #3a2a10;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #111417; --surface: #1a1e23; --ink: #e8ecef; --muted: #96a1ab; --line: #2b3138;
+  --accent: #ff4d5e; --on-accent: #16090b; --good: #3ecf8e; --good-bg: #12352a; --warn: #f0b150; --warn-bg: #3a2a10;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 15px; line-height: 1.45; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg); }
+.wrap { max-width: 920px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+header.top { padding-block: 20px 12px; }
+h1 { font-family: var(--font-display); font-weight: 600; font-size: 22px; line-height: 1.15; margin: 0; text-wrap: balance; }
+.stamp { margin: 6px 0 0; color: var(--muted); font-size: 13px; }
+.bar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--bg); border-bottom: 1px solid var(--line); padding-block: 10px; }
+.bar-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.bar-row > * { min-width: 0; }
+input, select, button { font: inherit; color: var(--ink); }
+input[type="search"], input[type="number"], select {
+  background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 9px 10px; width: 100%;
+}
+input:focus-visible, select:focus-visible, button:focus-visible, a:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.grow { flex: 1 1 220px; }
+.sort { flex: 1 1 210px; }
+details.filters { margin-top: 10px; border-bottom: 1px solid var(--line); padding-bottom: 10px; }
+details.filters > summary { cursor: pointer; font-weight: 600; padding: 6px 0; list-style-position: inside; }
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; padding-block: 8px 4px; }
+.field { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.field > span { font-size: 12px; color: var(--muted); letter-spacing: 0.02em; }
+.check { display: flex; align-items: center; gap: 8px; padding-top: 6px; }
+.check input { width: 18px; height: 18px; accent-color: var(--accent); }
+.btn { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 9px 14px; cursor: pointer; font-weight: 600; }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.summary { display: flex; flex-wrap: wrap; gap: 6px 18px; padding-block: 12px 8px; font-variant-numeric: tabular-nums; }
+.summary b { font-weight: 700; }
+.list { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.car { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px 16px; padding: 14px 16px; border-bottom: 1px solid var(--line); }
+.car:last-child { border-bottom: 0; }
+.car h2 { font-size: 16px; font-weight: 700; margin: 0; overflow-wrap: anywhere; }
+.car h2 span { font-weight: 500; color: var(--muted); }
+.specs, .meta { margin: 2px 0 0; overflow-wrap: anywhere; }
+.meta { color: var(--muted); font-size: 13px; }
+.money { text-align: right; font-variant-numeric: tabular-nums; }
+.price { font-size: 18px; font-weight: 700; white-space: nowrap; }
+.tag { display: inline-block; margin-top: 4px; padding: 2px 8px; border-radius: 999px; font-size: 13px; font-weight: 700; white-space: nowrap; }
+.tag.good { background: var(--good-bg); color: var(--good); }
+.tag.warn { background: var(--warn-bg); color: var(--warn); }
+.tag.plain { border: 1px solid var(--line); color: var(--muted); font-weight: 500; }
+.med { margin-top: 3px; font-size: 12px; color: var(--muted); }
+.links { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+.links a { display: inline-block; padding: 7px 14px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); text-decoration: none; font-weight: 600; font-size: 14px; }
+.links a.main { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.more { display: flex; justify-content: center; padding-block: 16px; }
+.note { color: var(--muted); font-size: 13px; padding-block: 8px 28px; max-width: 65ch; }
+.note p { margin: 0 0 8px; }
+.empty { padding: 28px 16px; text-align: center; color: var(--muted); }
+@media (max-width: 520px) {
+  .car { grid-template-columns: minmax(0, 1fr); }
+  .money { text-align: left; display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; }
+  .tag { margin-top: 0; }
+  .med { flex-basis: 100%; margin-top: 0; }
+}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <h1>Подбор авто</h1>
+    <p class="stamp" id="stamp">Загружаю объявления…</p>
+  </header>
+</div>
+
+<div class="bar">
+  <div class="wrap">
+    <div class="bar-row">
+      <input class="grow" type="search" id="q" placeholder="Марка или модель, например Гранта" aria-label="Марка или модель">
+      <select class="sort" id="sort" aria-label="Сортировка">
+        <option value="disc">Сначала дешевле аналогов</option>
+        <option value="priceAsc">Сначала дешёвые</option>
+        <option value="priceDesc">Сначала дорогие</option>
+        <option value="year">Сначала новые</option>
+        <option value="km">Сначала с малым пробегом</option>
+      </select>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+  <details class="filters" id="filters" open>
+    <summary id="filtersSummary">Фильтры</summary>
+    <div class="grid">
+      <label class="field"><span>Цена от, ₽</span><input type="number" id="pmin" inputmode="numeric" step="10000" min="0"></label>
+      <label class="field"><span>Цена до, ₽</span><input type="number" id="pmax" inputmode="numeric" step="10000" min="0"></label>
+      <label class="field"><span>Год от</span><input type="number" id="yfrom" inputmode="numeric" min="1980" max="2030"></label>
+      <label class="field"><span>Пробег до, км</span><input type="number" id="kmax" inputmode="numeric" step="10000" min="0"></label>
+      <label class="field"><span>Коробка</span>
+        <select id="tr"><option value="">Любая</option><option value="auto">Автомат, вариатор, робот</option><option value="АКПП">Только классический автомат</option><option value="механика">Механика</option></select></label>
+      <label class="field"><span>Продавец</span>
+        <select id="seller"><option value="">Любой</option><option value="1">Частник</option><option value="0">Автосалон</option></select></label>
+      <label class="field"><span>Дешевле аналогов минимум на</span>
+        <select id="disc"><option value="">Не важно</option><option value="0.05">5%</option><option value="0.12">12%</option><option value="0.2">20%</option><option value="0.3">30%</option></select></label>
+      <label class="field"><span>Сайт</span>
+        <select id="src"><option value="">Оба</option><option value="Авто.ру">Авто.ру</option><option value="Дром">Дром</option></select></label>
+      <label class="field"><span>Город</span><select id="town"><option value="">Все</option></select></label>
+    </div>
+    <label class="check"><input type="checkbox" id="hideBad" checked> Скрыть битые и с проблемами в документах</label>
+    <div class="bar-row" style="margin-top:10px">
+      <button class="btn" type="button" id="reset">Сбросить фильтры</button>
+      <button class="btn" type="button" id="defaults">Как в настройках программы</button>
+    </div>
+  </details>
+  <div class="summary" id="summary" aria-live="polite"></div>
+  <div class="list" id="list"><div class="empty">Загружаю объявления…</div></div>
+  <div class="more"><button class="btn primary" type="button" id="more" hidden>Показать ещё</button></div>
+  <div class="note">
+    <p><b>Как читать «дешевле аналогов».</b> Цена сравнивается с медианой той же модели с годом выпуска ±2 года по этой же базе. Сравнение есть, только если аналогов пять и больше. Пробег и состояние в нём не учтены.</p>
+    <p>Разница больше 40% чаще означает проблему с машиной или ошибку в объявлении. Объявления не проверялись по базам и не осматривались, часть могла быть снята после сбора. Авито в базу не входит.</p>
+  </div>
+</div>
+
+<script>
+(function () {
+  var PAGE = 40;
+  var SUSPICIOUS = 0.4;
+  var STORE_KEY = 'romanavto-filters-v1';
+  var IDS = ['q', 'sort', 'pmin', 'pmax', 'yfrom', 'kmax', 'tr', 'seller', 'disc', 'src', 'town'];
+  var el = function (id) { return document.getElementById(id); };
+  var all = [], meta = null, shown = PAGE, view = [];
+
+  var money = function (n) { return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, ' ') + ' ₽'; };
+  var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };
+  var safeUrl = function (u) { return /^https:\/\/(auto\.ru|auto\.drom\.ru|[a-z0-9-]+\.drom\.ru)\//.test(u || '') ? u : ''; };
+  var disc = function (r) { return r.m ? 1 - r.p / r.m : null; };
+  var num = function (id) { var v = parseFloat(el(id).value); return isFinite(v) ? v : null; };
+
+  function readState() { var s = {}; IDS.forEach(function (id) { s[id] = el(id).value; }); s.hideBad = el('hideBad').checked; return s; }
+  function writeState(s) { IDS.forEach(function (id) { if (s[id] != null) el(id).value = s[id]; }); if (s.hideBad != null) el('hideBad').checked = !!s.hideBad; }
+  function save() { try { localStorage.setItem(STORE_KEY, JSON.stringify(readState())); } catch (e) {} }
+  function load() { try { var s = JSON.parse(localStorage.getItem(STORE_KEY) || 'null'); if (s) writeState(s); return !!s; } catch (e) { return false; } }
+
+  function applyDefaults() {
+    var d = (meta && meta.defaults) || {};
+    writeState({ q: '', sort: 'disc', pmin: d.price_min || '', pmax: d.price_max || '', yfrom: d.year_from || '', kmax: d.km_max || '',
+      tr: '', seller: d.private_only ? '1' : '', disc: d.min_discount ? String(d.min_discount) : '', src: '', town: '', hideBad: true });
+  }
+  function resetAll() { writeState({ q: '', sort: 'disc', pmin: '', pmax: '', yfrom: '', kmax: '', tr: '', seller: '', disc: '', src: '', town: '', hideBad: true }); }
+
+  function filter() {
+    var q = el('q').value.trim().toLowerCase(), pmin = num('pmin'), pmax = num('pmax'), yfrom = num('yfrom'), kmax = num('kmax');
+    var tr = el('tr').value, seller = el('seller').value, minDisc = parseFloat(el('disc').value), src = el('src').value, town = el('town').value;
+    var hideBad = el('hideBad').checked;
+    view = all.filter(function (r) {
+      if (q && r.n.toLowerCase().indexOf(q) < 0) return false;
+      if (pmin != null && r.p < pmin) return false;
+      if (pmax != null && r.p > pmax) return false;
+      if (yfrom != null && r.y < yfrom) return false;
+      if (kmax != null && (r.k == null || r.k > kmax)) return false;
+      if (tr === 'auto' && ['АКПП', 'вариатор', 'робот'].indexOf(r.t) < 0) return false;
+      if (tr && tr !== 'auto' && r.t !== tr) return false;
+      if (seller && String(r.s) !== seller) return false;
+      if (isFinite(minDisc)) { var d = disc(r); if (d == null || d < minDisc) return false; }
+      if (src && r.a !== src) return false;
+      if (town && r.l !== town) return false;
+      if (hideBad && r.b) return false;
+      return true;
+    });
+    var by = el('sort').value;
+    view.sort(function (a, b) {
+      if (by === 'priceAsc') return a.p - b.p;
+      if (by === 'priceDesc') return b.p - a.p;
+      if (by === 'year') return b.y - a.y || a.p - b.p;
+      if (by === 'km') return (a.k == null ? 1e9 : a.k) - (b.k == null ? 1e9 : b.k);
+      var da = disc(a), db = disc(b);
+      return (db == null ? -9 : db) - (da == null ? -9 : da);
+    });
+  }
+
+  function card(r) {
+    var d = disc(r), specs = [], who = [];
+    if (r.k != null) specs.push(Math.round(r.k / 1000) + ' тыс. км');
+    if (r.v) specs.push(r.v + ' л' + (r.h ? ', ' + r.h + ' л.с.' : ''));
+    if (r.t) specs.push(r.t);
+    if (r.d) specs.push(r.d === '4WD' ? 'полный привод' : r.d + ' привод');
+    who.push(r.s ? (r.o ? 'Частник, от собственника' : 'Частник') : (r.e || 'Автосалон'));
+    if (r.l) who.push(r.l);
+    if (r.r && r.r !== 'без оценки') who.push('Дром: ' + r.r);
+    var tag = '';
+    if (r.b) tag = '<span class="tag warn">битый или проблемы с документами</span>';
+    else if (d != null && d >= SUSPICIOUS) tag = '<span class="tag warn">−' + Math.round(d * 100) + '%, проверьте внимательно</span>';
+    else if (d != null && d >= 0.05) tag = '<span class="tag good">−' + Math.round(d * 100) + '% к аналогам</span>';
+    else if (d != null && d <= -0.05) tag = '<span class="tag plain">+' + Math.round(-d * 100) + '% к аналогам</span>';
+    else if (d != null) tag = '<span class="tag plain">на уровне аналогов</span>';
+    var med = r.m ? '<div class="med">медиана ' + money(r.m) + ' по ' + r.c + ' объявл.</div>' : '<div class="med">мало аналогов для сравнения</div>';
+    var u = safeUrl(r.u), u2 = safeUrl(r.u2), links = '';
+    if (u) links += '<a class="main" href="' + esc(u) + '" target="_blank" rel="noopener">Открыть на ' + (r.a === 'Дром' ? 'Дроме' : esc(r.a)) + '</a>';
+    if (u2) links += '<a href="' + esc(u2) + '" target="_blank" rel="noopener">Это же авто на Дроме</a>';
+    return '<article class="car"><div><h2>' + esc(r.n) + ' <span>' + r.y + '</span></h2><p class="specs">' + esc(specs.join(' · ')) +
+      '</p><p class="meta">' + esc(who.join(' · ')) + '</p></div><div class="money"><div class="price">' + money(r.p) + '</div>' + tag + med +
+      '</div><div class="links">' + links + '</div></article>';
+  }
+
+  function render() {
+    filter();
+    var prices = view.map(function (r) { return r.p; }).sort(function (a, b) { return a - b; });
+    var median = prices.length ? prices[Math.floor((prices.length - 1) / 2)] : null;
+    var priv = view.filter(function (r) { return r.s; }).length;
+    el('summary').innerHTML = '<span>Найдено: <b>' + view.length + '</b> из ' + all.length + '</span>' +
+      (median ? '<span>Медианная цена: <b>' + money(median) + '</b></span>' : '') +
+      (view.length ? '<span>Частников: <b>' + priv + '</b></span>' : '');
+    el('list').innerHTML = view.length ? view.slice(0, shown).map(card).join('') :
+      '<div class="empty">Под такие фильтры ничего не подошло. Ослабьте условия или нажмите «Сбросить фильтры».</div>';
+    var left = view.length - shown;
+    el('more').hidden = left <= 0;
+    if (left > 0) el('more').textContent = 'Показать ещё ' + Math.min(PAGE, left);
+    var active = ['pmin', 'pmax', 'yfrom', 'kmax', 'tr', 'seller', 'disc', 'src', 'town'].filter(function (id) { return el(id).value !== ''; }).length;
+    el('filtersSummary').textContent = active ? 'Фильтры · включено ' + active : 'Фильтры';
+  }
+
+  function changed() { shown = PAGE; save(); render(); }
+  IDS.concat(['hideBad']).forEach(function (id) { el(id).addEventListener(id === 'q' ? 'input' : 'change', changed); });
+  ['pmin', 'pmax', 'yfrom', 'kmax'].forEach(function (id) { el(id).addEventListener('input', changed); });
+  el('more').addEventListener('click', function () { shown += PAGE; render(); });
+  el('reset').addEventListener('click', function () { resetAll(); changed(); });
+  el('defaults').addEventListener('click', function () { applyDefaults(); changed(); });
+  if (window.matchMedia && window.matchMedia('(max-width: 700px)').matches) el('filters').open = false;
+
+  Promise.all([
+    fetch('data.json').then(function (r) { if (!r.ok) throw new Error('data'); return r.json(); }),
+    fetch('meta.json').then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; })
+  ]).then(function (res) {
+    all = res[0]; meta = res[1];
+    var towns = {};
+    all.forEach(function (r) { if (r.l) towns[r.l] = (towns[r.l] || 0) + 1; });
+    Object.keys(towns).sort(function (a, b) { return towns[b] - towns[a]; }).forEach(function (t) {
+      var o = document.createElement('option'); o.value = t; o.textContent = t + ' (' + towns[t] + ')'; el('town').appendChild(o);
+    });
+    el('stamp').textContent = meta
+      ? 'Собрано ' + meta.date + ' · ' + meta.total + ' объявлений: Авто.ру ' + meta.autoru + ', только на Дроме ' + meta.drom
+      : all.length + ' объявлений';
+    if (!load()) applyDefaults();
+    render();
+  }).catch(function () {
+    el('stamp').textContent = 'Не удалось загрузить объявления.';
+    el('list').innerHTML = '<div class="empty">Данные не загрузились. Обновите страницу. Если не помогло, попросите Claude собрать подборку заново.</div>';
+  });
+})();
+</script>

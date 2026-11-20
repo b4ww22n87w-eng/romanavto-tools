@@ -1,5 +1,4 @@
-*.json
-*.xlsx
+out/
 node_modules/
-*.png
-*.html
+__pycache__/
+*.log
