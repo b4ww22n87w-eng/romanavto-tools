@@ -1,0 +1,5 @@
+*.json
+*.xlsx
+node_modules/
+*.png
+*.html
